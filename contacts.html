@@ -352,7 +352,8 @@
           </ol>
 
           <div class="pay-warning">
-            ⏱️ Просим внести предоплату в течение <b>40 минут</b> — после подтверждения даты закрепляются за вами.
+  ⏱️ Даты забронированы за вами. Осталось времени: <b id="holdTimer">40:00</b>.<br>
+  Просим внести предоплату — после подтверждения даты закрепляются за вами.
             Депозит 7 000 ₽ оплачивается <b>только при заселении</b> и возвращается при выезде.
           </div>
 
@@ -418,31 +419,56 @@
   </div>
 </footer>
 
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  /* ============ НАСТРОЙКИ ============ */
-  const PRICE_PER_NIGHT = 6000; // цена за ночь, ₽
-  const DEPOSIT = 7000;         // депозит — только при заселении
-  const PREPAY = 15;            // размер предоплаты, ₽ (тест — потом измените)
-  const SBP_PHONE = '+7 (985) 287-92-49';
-  const SBP_BANK  = 'Т-Банк';
-  const SBP_NAME  = 'Сергей К.';
+  /* ╔════════════ НАСТРОЙКИ — менять только здесь ════════════╗ */
+  const SUPABASE_URL = 'https://nhkufkkeqywmycptbixa.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oa3Vma2tlcXl3bXljcHRiaXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExODQ0NTAsImV4cCI6MjA5Njc2MDQ1MH0.SS7HRL8zxQzm3lWJWoy8zYPkjWNNwobrMTP1TAyCOu4';
+  const FORMSPREE_URL   = 'https://formspree.io/f/xwvjqzjk'; // ваш Formspree (письма на почту)
 
-  // Занятые даты (формат 'ГГГГ-ММ-ДД'). Заполняйте вручную по мере бронирований.
-  const busyDates = ["2026-01-03","2026-01-04","2026-01-05","2026-01-15","2026-01-16"];
+  const PRICE_PER_NIGHT = 6000;  // цена за ночь, ₽
+  const DEPOSIT         = 7000;  // депозит — только при заселении
+  const PREPAY          = 15;    // предоплата, ₽ (тест — потом изменить)
+  const HOLD_MINUTES    = 40;    // удержание дат, минут
 
-  /* ============ КАЛЕНДАРЬ ============ */
+  const SBP_PHONE_RAW = '+79852879249';        // для копирования
+  const SBP_PHONE     = '+7 (985) 287-92-49';  // для показа
+  const SBP_BANK      = 'Т-Банк';
+  const SBP_NAME      = 'Сергей К.';
+  /* ╚═════════════════════════════════════════════════════════╝ */
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const months = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-  let viewDate = new Date();
-  viewDate.setDate(1);
+  let viewDate = new Date(); viewDate.setDate(1);
   let checkIn = null, checkOut = null;
-  let lastBooking = {}; // данные последней заявки для подтверждения оплаты
+  let busy = new Set();
+  let bookingId = null, timerInt = null;
 
   const daysEl = document.getElementById('days');
   const monthLbl = document.getElementById('monthLbl');
+  const $ = id => document.getElementById(id);
 
   function fmt(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
   function fmtRu(d){ return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear(); }
 
+  /* ===== загрузка занятых дат из Supabase ===== */
+  async function loadBusy(){
+    try{
+      await sb.rpc('cleanup_expired');
+      const {data,error} = await sb.rpc('get_busy_dates');
+      if(error) throw error;
+      busy = new Set();
+      (data||[]).forEach(b=>{
+        let d = new Date(b.date_in+'T00:00:00');
+        const end = new Date(b.date_out+'T00:00:00');
+        while(d < end){ busy.add(fmt(d)); d.setDate(d.getDate()+1); }
+      });
+    }catch(e){ console.warn('Supabase:', e.message); }
+    renderCalendar();
+  }
+
+  /* ===== КАЛЕНДАРЬ (ваш дизайн классов) ===== */
   function renderCalendar(){
     daysEl.innerHTML='';
     monthLbl.textContent = months[viewDate.getMonth()]+' '+viewDate.getFullYear();
@@ -462,7 +488,7 @@
       btn.textContent=d;
       if(date<today){
         btn.disabled=true;
-      } else if(busyDates.includes(ds)){
+      } else if(busy.has(ds)){
         btn.classList.add('busy'); btn.disabled=true;
       } else {
         btn.onclick=()=>pickDate(date);
@@ -474,186 +500,152 @@
     }
   }
 
-  function changeMonth(dir){
-    viewDate.setMonth(viewDate.getMonth()+dir);
-    renderCalendar();
-  }
+  function changeMonth(dir){ viewDate.setMonth(viewDate.getMonth()+dir); renderCalendar(); }
 
   function rangeHasBusy(start,end){
-    let cur=new Date(start);
-    cur.setDate(cur.getDate()+1);
-    while(cur<end){
-      if(busyDates.includes(fmt(cur))) return true;
-      cur.setDate(cur.getDate()+1);
-    }
+    let cur=new Date(start); cur.setDate(cur.getDate()+1);
+    while(cur<end){ if(busy.has(fmt(cur))) return true; cur.setDate(cur.getDate()+1); }
     return false;
   }
 
   function pickDate(date){
-    if(!checkIn || (checkIn && checkOut)){
-      checkIn=date; checkOut=null;
-    } else if(date>checkIn){
-      if(rangeHasBusy(checkIn,date)){
-        alert('В выбранном диапазоне есть занятые даты. Выберите другой период.');
-        checkIn=date; checkOut=null;
-      } else {
-        checkOut=date;
-      }
-    } else {
-      checkIn=date; checkOut=null;
-    }
-    renderCalendar();
-    updateInfo();
+    if(!checkIn || (checkIn && checkOut)){ checkIn=date; checkOut=null; }
+    else if(date>checkIn){
+      if(rangeHasBusy(checkIn,date)){ alert('В выбранном диапазоне есть занятые даты. Выберите другой период.'); checkIn=date; checkOut=null; }
+      else { checkOut=date; }
+    } else { checkIn=date; checkOut=null; }
+    renderCalendar(); updateInfo();
   }
 
   function updateInfo(){
-    const sel=document.getElementById('selectedDates');
-    const calc=document.getElementById('priceCalc');
-    const binEl=document.getElementById('bin');
-    const boutEl=document.getElementById('bout');
-
+    const sel=$('selectedDates'), calc=$('priceCalc'), binEl=$('bin'), boutEl=$('bout');
     if(checkIn && checkOut){
       const nights=Math.round((checkOut-checkIn)/(1000*60*60*24));
       const accomSum=nights*PRICE_PER_NIGHT;
-
       sel.innerHTML='Заезд: <b>'+fmtRu(checkIn)+'</b> &nbsp;→&nbsp; Выезд: <b>'+fmtRu(checkOut)+'</b><br>Ночей: <b>'+nights+'</b>';
-      binEl.value=fmtRu(checkIn);
-      boutEl.value=fmtRu(checkOut);
-
-      document.getElementById('nightsLine').textContent=nights+' ноч. × '+PRICE_PER_NIGHT.toLocaleString('ru')+' ₽';
-      document.getElementById('nightsSum').textContent=accomSum.toLocaleString('ru')+' ₽';
-      document.getElementById('totalSum').textContent=accomSum.toLocaleString('ru')+' ₽';
-      document.getElementById('prepaySum').textContent=PREPAY.toLocaleString('ru')+' ₽';
-      document.getElementById('hSum').value=accomSum+' ₽';
-      document.getElementById('hPrepay').value=PREPAY+' ₽ (СБП)';
+      binEl.value=fmtRu(checkIn); boutEl.value=fmtRu(checkOut);
+      $('nightsLine').textContent=nights+' ноч. × '+PRICE_PER_NIGHT.toLocaleString('ru')+' ₽';
+      $('nightsSum').textContent=accomSum.toLocaleString('ru')+' ₽';
+      $('totalSum').textContent=accomSum.toLocaleString('ru')+' ₽';
+      $('prepaySum').textContent=PREPAY.toLocaleString('ru')+' ₽';
+      $('hSum').value=accomSum+' ₽'; $('hPrepay').value=PREPAY+' ₽ (СБП)';
       calc.style.display='block';
-    }
-    else if(checkIn){
+    } else if(checkIn){
       sel.innerHTML='Заезд: <b>'+fmtRu(checkIn)+'</b><br>Теперь выберите дату выезда.';
-      binEl.value=fmtRu(checkIn);
-      boutEl.value='';
-      calc.style.display='none';
-    }
-    else {
+      binEl.value=fmtRu(checkIn); boutEl.value=''; calc.style.display='none';
+    } else {
       sel.innerHTML='Даты не выбраны. Нажмите на дату заезда, затем на дату выезда.';
-      binEl.value=''; boutEl.value='';
-      calc.style.display='none';
+      binEl.value=''; boutEl.value=''; calc.style.display='none';
     }
   }
 
-  /* ============ ШАГ 1: ОТПРАВКА ЗАЯВКИ ============ */
+  /* ===== ШАГ 1: заявка → создаём бронь в Supabase ===== */
   async function submitBooking(e){
     e.preventDefault();
-    if(!checkIn || !checkOut){
-      alert('Пожалуйста, выберите даты заезда и выезда в календаре.');
-      return false;
-    }
-    const form = e.target;
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = 'Отправляем...';
-    const data = new FormData(form);
-
-    // Сохраняем данные заявки для последующего подтверждения оплаты
-    lastBooking = {
-      name: document.getElementById('bname').value,
-      phone: document.getElementById('bphone').value,
-      datesIn: fmtRu(checkIn),
-      datesOut: fmtRu(checkOut)
-    };
-
+    if(!checkIn || !checkOut){ alert('Пожалуйста, выберите даты заезда и выезда в календаре.'); return false; }
+    const form=e.target, btn=$('submitBtn');
+    btn.disabled=true; btn.textContent='Бронируем даты...';
     try{
-      const res = await fetch(form.action, {
-        method:'POST',
-        body:data,
-        headers:{'Accept':'application/json'}
-      });
-      if(res.ok){
-        showPayStep();
-      } else {
-        alert('Ошибка отправки. Пожалуйста, позвоните нам по телефону.');
-      }
+      await loadBusy();
+      if(rangeHasBusy(checkIn,checkOut)) throw new Error('Увы, эти даты только что заняли. Выберите другой период.');
+
+      const {data,error} = await sb.from('bookings').insert({
+        date_in: fmt(checkIn), date_out: fmt(checkOut),
+        guest_name: $('bname').value, guest_phone: $('bphone').value
+      }).select('id').single();
+      if(error) throw error;
+      bookingId = data.id;
+
+      // письмо на почту (необязательно)
+      sendMail(new FormData(form), 'Новая заявка — ожидает предоплату по СБП');
+
+      showPayStep();
+      loadBusy();
     }catch(err){
-      alert('Нет соединения с интернетом. Попробуйте ещё раз.');
+      alert(err.message || 'Ошибка. Попробуйте ещё раз.');
     }
-    btn.disabled = false;
-    btn.textContent = 'Отправить заявку и перейти к оплате';
+    btn.disabled=false; btn.textContent='Отправить заявку и перейти к оплате';
     return false;
   }
 
-  /* ============ ШАГ 2: ЭКРАН ОПЛАТЫ ============ */
-  function showPayStep(){
-    document.getElementById('payAmount').textContent = PREPAY.toLocaleString('ru')+' ₽';
-    document.getElementById('payAmountRow').textContent = PREPAY.toLocaleString('ru')+' ₽';
-    document.getElementById('formStep').style.display='none';
-    document.getElementById('payStep').style.display='block';
-    document.getElementById('payFinal').style.display='none';
-    document.getElementById('paidBtn').style.display='block';
-    document.getElementById('payStep').scrollIntoView({behavior:'smooth',block:'start'});
+  function sendMail(data, status){
+    if(!FORMSPREE_URL) return;
+    data.set('Статус', status);
+    fetch(FORMSPREE_URL,{method:'POST',body:data,headers:{'Accept':'application/json'}}).catch(()=>{});
   }
 
-  function backToForm(){
-    document.getElementById('payStep').style.display='none';
-    document.getElementById('formStep').style.display='block';
+  /* ===== ШАГ 2: экран оплаты ===== */
+  function showPayStep(){
+    $('payAmount').textContent = PREPAY.toLocaleString('ru')+' ₽';
+    $('payAmountRow').textContent = PREPAY.toLocaleString('ru')+' ₽';
+    $('sbpPhone').textContent = SBP_PHONE;
+    $('formStep').style.display='none';
+    $('payStep').style.display='block';
+    $('payFinal').style.display='none';
+    $('paidBtn').style.display='block';
+    startTimer();
+    $('payStep').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function startTimer(){
+    let sec = HOLD_MINUTES*60;
+    clearInterval(timerInt);
+    const t = $('holdTimer');
+    timerInt = setInterval(()=>{
+      sec--;
+      if(t) t.textContent = String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
+      if(sec<=0){ clearInterval(timerInt); alert('Время брони истекло, даты освобождены.'); backToForm(); }
+    },1000);
+  }
+
+  async function backToForm(){
+    clearInterval(timerInt);
+    if(bookingId){ await sb.from('bookings').delete().eq('id', bookingId); bookingId=null; }
+    $('payStep').style.display='none';
+    $('formStep').style.display='block';
+    loadBusy();
   }
 
   function copyText(text, btn){
     navigator.clipboard.writeText(text).then(()=>{
-      const old = btn.textContent;
-      btn.textContent = '✓ Скопировано';
-      setTimeout(()=>{ btn.textContent = old; }, 1600);
+      const old=btn.textContent; btn.textContent='✓ Скопировано';
+      setTimeout(()=>{btn.textContent=old;},1600);
     }).catch(()=>{
-      // запасной вариант для старых браузеров
-      const ta=document.createElement('textarea');
-      ta.value=text; document.body.appendChild(ta);
-      ta.select(); document.execCommand('copy');
-      document.body.removeChild(ta);
-      btn.textContent='✓ Скопировано';
-      setTimeout(()=>{ btn.textContent='Копировать'; },1600);
+      const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      btn.textContent='✓ Скопировано'; setTimeout(()=>{btn.textContent='Копировать';},1600);
     });
   }
 
-  /* Подтверждение «Я оплатил(а)» — отправляет вам второе письмо через Formspree */
+  /* ===== подтверждение оплаты ===== */
   async function confirmPaid(){
-    const btn = document.getElementById('paidBtn');
-    btn.disabled = true;
-    btn.textContent = 'Отправляем подтверждение...';
-
-    const data = new FormData();
-    data.append('Статус','✅ ГОСТЬ ПОДТВЕРДИЛ ОПЛАТУ предоплаты '+PREPAY+' ₽ по СБП');
-    data.append('Имя', lastBooking.name || '');
-    data.append('Телефон', lastBooking.phone || '');
-    data.append('Заезд', lastBooking.datesIn || '');
-    data.append('Выезд', lastBooking.datesOut || '');
-
+    const btn=$('paidBtn');
+    btn.disabled=true; btn.textContent='Подтверждаем...';
     try{
-      const res = await fetch('https://formspree.io/f/xwvjqzjk', {
-        method:'POST',
-        body:data,
-        headers:{'Accept':'application/json'}
-      });
-      if(res.ok){
-        btn.style.display='none';
-        document.getElementById('payFinal').style.display='block';
-        // Сброс формы и календаря
-        document.getElementById('bookForm').reset();
-        checkIn=null; checkOut=null;
-        renderCalendar(); updateInfo();
-        lastBooking = {};
-      } else {
-        alert('Не удалось отправить подтверждение. Напишите нам в мессенджер, пожалуйста.');
-        btn.disabled=false;
-        btn.textContent='✅ Я оплатил(а)';
+      if(bookingId){
+        const {error} = await sb.from('bookings').update({status:'paid'}).eq('id', bookingId);
+        if(error) throw error;
       }
+      clearInterval(timerInt);
+      const d=new FormData();
+      d.append('Статус','✅ ГОСТЬ ПОДТВЕРДИЛ ОПЛАТУ предоплаты '+PREPAY+' ₽ по СБП');
+      d.append('Имя', $('bname').value); d.append('Телефон', $('bphone').value);
+      d.append('Заезд', $('bin').value); d.append('Выезд', $('bout').value);
+      sendMail(d, '✅ ОПЛАЧЕНО');
+
+      btn.style.display='none';
+      $('payFinal').style.display='block';
+      bookingId=null; checkIn=null; checkOut=null;
+      $('bookForm').reset();
+      loadBusy(); updateInfo();
     }catch(err){
-      alert('Нет соединения. Попробуйте ещё раз или напишите нам в мессенджер.');
-      btn.disabled=false;
-      btn.textContent='✅ Я оплатил(а)';
+      alert('Ошибка подтверждения. Попробуйте ещё раз или напишите нам в мессенджер.');
+      btn.disabled=false; btn.textContent='✅ Я оплатил(а)';
     }
   }
 
   // запуск
-  renderCalendar();
+  loadBusy();
   updateInfo();
 </script>
 </body>

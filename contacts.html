@@ -555,8 +555,14 @@
       if(error) throw error;
       bookingId = data.id;
 
-      // письмо на почту (необязательно)
-      sendMail(new FormData(form), 'Новая заявка — ожидает предоплату по СБП');
+      // письмо на почту со ВСЕМИ данными заявки (приходит ДО оплаты)
+      const mail = new FormData(form);
+      mail.set('Email', $('bemail').value);
+      mail.set('Комментарий', $('bcomment').value || '—');
+      mail.set('Дата заезда', $('bin').value);
+      mail.set('Дата выезда', $('bout').value);
+      mail.set('Гостей', $('bguests').value);
+      sendMail(mail, 'Новая заявка — ожидает предоплату по СБП');
 
       showPayStep();
       loadBusy();
@@ -570,6 +576,11 @@
   function sendMail(data, status){
     if(!FORMSPREE_URL) return;
     data.set('Статус', status);
+    // тема письма — чтобы сразу видеть в почте, что за заявка
+    data.set('_subject', status + ' — Свирские крыши');
+    // отвечать гостю прямо из почты (если он указал email)
+    const email = $('bemail') ? $('bemail').value : '';
+    if(email) data.set('_replyto', email);
     fetch(FORMSPREE_URL,{method:'POST',body:data,headers:{'Accept':'application/json'}}).catch(()=>{});
   }
 

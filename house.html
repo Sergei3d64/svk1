@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>О доме — Свирские крыши</title>
+
+    <!-- Иконка сайта (favicon) -->
+  <link rel="icon" type="image/png" href="ic1.png" />
+  <link rel="apple-touch-icon" href="ic1.png" />
+
+<style>
+  :root{
+    --green:#3a5a40;
+    --green-dark:#283e2e;
+    --sand:#dad7cd;
+    --cream:#f7f5f0;
+    --accent:#a3b18a;
+    --text:#2b2b2b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);background:var(--cream);line-height:1.6;}
+  a{text-decoration:none;color:inherit;}
+  .container{max-width:1180px;margin:0 auto;padding:0 20px;}
+
+  /* HEADER */
+  header{position:sticky;top:0;z-index:100;background:rgba(40,62,46,.95);backdrop-filter:blur(6px);}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;max-width:1180px;margin:0 auto;}
+  .logo{color:#fff;font-size:1.4rem;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+  .logo span{font-size:1.6rem;}
+  .nav-links{display:flex;gap:28px;list-style:none;}
+  .nav-links a{color:#e9e9e2;font-size:.98rem;transition:.2s;}
+  .nav-links a:hover,.nav-links a.active{color:#fff;border-bottom:2px solid var(--accent);padding-bottom:2px;}
+  .burger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
+  .burger span{width:26px;height:3px;background:#fff;border-radius:2px;}
+
+  /* PAGE HEADER */
+  .page-hero{height:42vh;min-height:300px;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;
+    background:linear-gradient(rgba(20,30,22,.5),rgba(20,30,22,.6)),url('02nbp-ph960q11.jpg') center/cover;}
+  .page-hero h1{font-size:2.8rem;text-shadow:0 2px 16px rgba(0,0,0,.4);}
+  .page-hero p{font-size:1.1rem;opacity:.95;margin-top:10px;}
+
+  .breadcrumb{background:#fff;padding:14px 0;font-size:.9rem;color:#888;}
+  .breadcrumb a{color:var(--green);}
+
+  section{padding:60px 0;}
+  .section-title{font-size:1.9rem;color:var(--green-dark);margin-bottom:8px;}
+  .section-sub{color:#777;margin-bottom:34px;}
+
+  /* INTRO */
+  .intro{display:grid;grid-template-columns:1.2fr .8fr;gap:46px;align-items:start;}
+  .intro p{margin-bottom:14px;color:#444;}
+  .info-card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 12px 30px rgba(0,0,0,.08);}
+  .info-card h3{color:var(--green);margin-bottom:18px;}
+  .info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #e2e0d7;}
+  .info-row:last-child{border:none;}
+  .info-row span:first-child{color:#777;}
+  .info-row span:last-child{font-weight:600;color:var(--green-dark);}
+
+  /* BEDS */
+  .beds{background:var(--sand);}
+  .beds-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;}
+  .bed-card{background:#fff;border-radius:14px;padding:28px;text-align:center;}
+  .bed-card .ico{font-size:2.6rem;margin-bottom:12px;}
+  .bed-card h3{color:var(--green);margin-bottom:6px;}
+  .bed-card p{color:#777;}
+
+  /* AMENITIES */
+  .amen-block{margin-bottom:40px;}
+  .amen-block h3{color:var(--green-dark);font-size:1.3rem;margin-bottom:18px;display:flex;align-items:center;gap:10px;border-left:4px solid var(--accent);padding-left:14px;}
+  .amen-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px 26px;}
+  .amen-list li{list-style:none;padding:8px 0;color:#444;display:flex;align-items:center;gap:10px;}
+  .amen-list li::before{content:"✓";color:var(--green);font-weight:700;}
+
+  /* RULES */
+  .rules{background:var(--green-dark);color:#fff;}
+  .rules .section-title{color:#fff;}
+  .rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
+  .rule{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:22px;}
+  .rule .ico{font-size:1.6rem;margin-bottom:8px;}
+  .rule h4{margin-bottom:6px;}
+  .rule p{opacity:.85;font-size:.95rem;}
+
+  /* DEPOSIT */
+  .deposit{background:var(--accent);color:#1d2a1f;text-align:center;border-radius:18px;padding:40px;margin-top:40px;}
+  .deposit .num{font-size:2.6rem;font-weight:800;}
+  .deposit p{margin-top:8px;}
+
+  /* HOST */
+  .host{display:flex;align-items:center;gap:30px;background:#fff;border-radius:18px;padding:34px;box-shadow:0 12px 30px rgba(0,0,0,.07);flex-wrap:wrap;}
+  .host .avatar{width:110px;height:110px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2.4rem;flex-shrink:0;}
+  .host h3{color:var(--green-dark);margin-bottom:6px;}
+  .host p{color:#666;}
+
+  /* CTA */
+  .cta{text-align:center;}
+  .btn{display:inline-block;background:var(--green-dark);color:#fff;padding:14px 34px;border-radius:40px;font-weight:600;transition:.25s;border:2px solid var(--green-dark);}
+  .btn:hover{background:transparent;color:var(--green-dark);}
+
+  footer{background:#1d2a1f;color:#cfd3ca;padding:50px 0 24px;}
+  .foot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:34px;margin-bottom:30px;}
+  footer h4{color:#fff;margin-bottom:14px;}
+  footer a{display:block;color:#aeb3a6;margin-bottom:8px;transition:.2s;}
+  footer a:hover{color:#fff;}
+
+  .copy{text-align:center;border-top:1px solid #33442f;padding-top:20px;font-size:.85rem;color:#8a9384;}
+  .copy-line{
+    display:inline;             /* по умолчанию — в одну строку */
+    white-space:nowrap;         /* каждая часть не рвётся внутри себя */
+  }
+  .copy a{display:inline;}      /* ссылка mps1 — в строку */
+
+  /* на узких экранах вторая часть уходит на новую строку */
+  @media(max-width:600px){
+    .copy-line{display:block;}
+  }
+
+  @media(max-width:880px){
+    .intro{grid-template-columns:1fr;}
+    .nav-links{display:none;position:absolute;top:62px;left:0;right:0;flex-direction:column;background:var(--green-dark);padding:20px;gap:18px;}
+    .nav-links.open{display:flex;}
+    .burger{display:flex;}
+    .page-hero h1{font-size:2rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <nav>
+    <a href="index.html" class="logo"><span>🌲</span> Свирские крыши</a>
+    <ul class="nav-links" id="menu">
+      <li><a href="index.html">Главная</a></li>
+      <li><a href="house.html" class="active">О доме</a></li>
+      <li><a href="gallery.html">Галерея</a></li>
+      <li><a href="reviews.html">Отзывы</a></li>
+      <li><a href="contacts.html">Контакты</a></li>
+    </ul>
+    <div class="burger" onclick="document.getElementById('menu').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+</header>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div>
+    <h1>Домик на краю леса</h1>
+    <p>Частный дом · Старая Слобода, Сосновая улица, 100</p>
+  </div>
+</section>
+
+<div class="breadcrumb">
+  <div class="container"><a href="index.html">Главная</a> / О доме</div>
+</div>
+
+<!-- INTRO -->
+<section>
+  <div class="container intro">
+    <div>
+      <h2 class="section-title">О нашем домике</h2>
+      <p>Приглашаем вас в новый уютный домик-треугольник, который расположился на святой земле преподобного Александра Свирского.</p>
+      <p>В окружении чистейшего хвойного леса вы сможете набраться сил и здоровья, насладиться пением птиц, посвятить себя прогулкам по экотропам и молитве.</p>
+      <p>Домик оборудован всем необходимым для вашего комфортного пребывания: двуспальная кровать, раскладной диван-кровать на двоих, полностью укомплектованная кухня (холодильник, варочная панель, духовой шкаф, посудомоечная машина) и современный санузел со стиральной машиной и душевой кабиной.</p>
+      <p>Наши дома не подходят для вечеринок. Наша цель — помочь вам отдохнуть от шумных городов, насладиться природой свирского заповедника, восстановиться и достичь состояния внутреннего умиротворения, гармонии и спокойствия.</p>
+      <p style="color:var(--green);font-style:italic;">Будем рады видеть вас! С любовью, «Свирские крыши».</p>
+    </div>
+    <div class="info-card">
+      <h3>Характеристики</h3>
+      <div class="info-row"><span>Тип жилья</span><span>Частный дом</span></div>
+      <div class="info-row"><span>Площадь</span><span>42 м²</span></div>
+      <div class="info-row"><span>Гостей</span><span>до 4</span></div>
+      <div class="info-row"><span>Спальни</span><span>1</span></div>
+      <div class="info-row"><span>Кровати</span><span>2</span></div>
+      <div class="info-row"><span>Этажей</span><span>2</span></div>
+      <div class="info-row"><span>Ванная</span><span>1 (с туалетом)</span></div>
+      <div class="info-row"><span>Парковка</span><span>Бесплатная</span></div>
+      <div class="info-row"><span>Вид из окна</span><span>На лес 🌲</span></div>
+      <div class="info-row"><span>Ремонт</span><span>Дизайнерский</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- BEDS -->
+<section class="beds">
+  <div class="container">
+    <h2 class="section-title">Спальные места</h2>
+    <p class="section-sub">2 кровати · 4 основных спальных места</p>
+    <div class="beds-grid">
+      <div class="bed-card"><div class="ico">🛏️</div><h3>Двуспальная кровать</h3><p>1 шт · комфортный матрас</p></div>
+      <div class="bed-card"><div class="ico">🛋️</div><h3>Двуспальный диван-кровать</h3><p>1 шт · раскладывается на двоих</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- AMENITIES -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Удобства и оснащение</h2>
+    <p class="section-sub">Всё необходимое для комфортного отдыха</p>
+
+    <div class="amen-block">
+      <h3>🏠 Основные удобства</h3>
+      <ul class="amen-list">
+        <li>Беспроводной интернет Wi-Fi</li>
+        <li>Проводной интернет</li>
+        <li>Электрический чайник</li>
+        <li>Фен</li>
+        <li>Стиральная машина</li>
+        <li>Сушилка для белья</li>
+        <li>Блэкаут-шторы</li>
+        <li>Шкаф</li>
+        <li>Холодильник</li>
+        <li>Обогреватель</li>
+        <li>Утюг с гладильной доской</li>
+        <li>Москитная сетка</li>
+        <li>Звукоизоляция</li>
+        <li>Постельное бельё и полотенца</li>
+        <li>Чистящие средства</li>
+        <li>Деревянный/паркетный пол</li>
+      </ul>
+    </div>
+
+    <div class="amen-block">
+      <h3>🍳 Кухня-гостиная</h3>
+      <ul class="amen-list">
+        <li>Газовая плита</li>
+        <li>Духовой шкаф</li>
+        <li>Посудомоечная машина</li>
+        <li>Холодильник</li>
+        <li>Морозильник</li>
+        <li>Электрический чайник</li>
+        <li>Кухонный гарнитур</li>
+        <li>Посуда и принадлежности</li>
+        <li>Столовые приборы</li>
+        <li>Чай / кофе / специи</li>
+      </ul>
+    </div>
+
+    <div class="amen-block">
+      <h3>🚿 Ванная комната</h3>
+      <ul class="amen-list">
+        <li>Душевая кабина</li>
+        <li>Гигиенический душ</li>
+        <li>Туалет</li>
+        <li>Полотенцесушитель</li>
+        <li>Фен</li>
+        <li>Полотенца</li>
+        <li>Туалетные принадлежности</li>
+        <li>Средства для стирки</li>
+      </ul>
+    </div>
+
+    <div class="amen-block">
+      <h3>🌳 Оснащение двора</h3>
+      <ul class="amen-list">
+        <li>Баня</li>
+        <li>Мангал</li>
+        <li>Принадлежности для барбекю</li>
+        <li>Терраса</li>
+        <li>Садовая мебель</li>
+        <li>Обеденная зона на улице</li>
+        <li>Мебель на улице</li>
+        <li>Охраняемая территория</li>
+      </ul>
+    </div>
+
+    <div class="amen-block">
+      <h3>🚗 Парковка</h3>
+      <ul class="amen-list">
+        <li>Бесплатная</li>
+        <li>Частная</li>
+        <li>Есть охрана</li>
+      </ul>
+    </div>
+
+    <div class="amen-block">
+      <h3>🎣 Инфраструктура и досуг рядом</h3>
+      <ul class="amen-list">
+        <li>Прокат велосипедов</li>
+        <li>Рыбалка</li>
+        <li>Водные виды спорта</li>
+        <li>Верховая езда</li>
+        <li>Охота</li>
+        <li>Езда на снегоходах</li>
+        <li>Пруд / озеро поблизости</li>
+        <li>Лес</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- RULES -->
+<section class="rules">
+  <div class="container">
+    <h2 class="section-title">Правила проживания</h2>
+    <p class="section-sub" style="color:#cfd3ca;">Чтобы отдых был комфортным для всех</p>
+    <div class="rules-grid">
+      <div class="rule"><div class="ico">🕒</div><h4>Заезд / выезд</h4><p>Заезд с 15:00, выезд до 12:00. Ранний заезд и поздний выезд — индивидуально.</p></div>
+      <div class="rule"><div class="ico">🚫</div><h4>Без вечеринок</h4><p>Дом не подходит для вечеринок и шумных мероприятий.</p></div>
+      <div class="rule"><div class="ico">🐾</div><h4>Можно с питомцами</h4><p>По предварительному согласованию с хозяйкой.</p></div>
+      <div class="rule"><div class="ico">🚭</div><h4>Курение запрещено</h4><p>Курить внутри домика нельзя.</p></div>
+      <div class="rule"><div class="ico">👶</div><h4>Можно с детьми</h4><p>Принимаем гостей с детьми любого возраста.</p></div>
+      <div class="rule"><div class="ico">📄</div><h4>Отчётные документы</h4><p>Предоставляются по согласованию.</p></div>
+    </div>
+
+    <div class="deposit">
+      <div class="num">7 000 ₽</div>
+      <p><b>Страховой депозит.</b> Не входит в стоимость проживания, возвращается при выезде.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOST -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Ваша хозяйка</h2>
+    <p class="section-sub">Всегда на связи и готова помочь</p>
+    <div class="host">
+      <div class="avatar">Д</div>
+      <div>
+        <h3>Дарина Игоревна Заремба</h3>
+        <p>Приветливая и отзывчивая хозяйка. По любому вопросу можете писать или звонить — мы реагируем быстро на любую ситуацию и обязательно найдём решение. Стремимся сделать ваш отдых максимально удобным и приятным.</p>
+        <a href="contacts.html" class="btn" style="margin-top:16px;">Связаться</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" style="padding-top:0;">
+  <div class="container">
+    <a href="contacts.html" class="btn">Забронировать домик</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <h4>🌲 Свирские крыши</h4>
+        <p style="color:#aeb3a6;">Уютные гостевые дома в окружении хвойного леса свирского заповедника.</p>
+      </div>
+      <div>
+        <h4>Навигация</h4>
+        <a href="index.html">Главная</a>
+        <a href="house.html">О доме</a>
+        <a href="gallery.html">Галерея</a>
+        <a href="reviews.html">Отзывы</a>
+        <a href="contacts.html">Контакты</a>
+      </div>
+      <div>
+        <h4>Контакты</h4>
+        <a href="#">📍 Старая Слобода,<br>Новая Слобода,<br>Сосновая улица, 100</a>
+        <a href="#">👤 Хозяйка: Дарина Игоревна</a>
+        <a href="tel:+79110965722">📞 +7 (911) 096-57-22</a>
+      </div>
+      <div>
+        <h4>Время</h4>
+        <a href="#">Заезд — после 15:00</a>
+        <a href="#">Выезд — до 12:00</a>
+      </div>
+    </div>
+
+    <div class="copy">
+      <span class="copy-line">© 2026 Свирские крыши. Все права защищены.</span>
+      <span class="copy-line">Сайт сделан <a href="https://sergei3d64.github.io/mps1/">mps1</a> 🍃</span>
+    </div>
+
+  </div>
+</footer>
+
+</body>
+</html>

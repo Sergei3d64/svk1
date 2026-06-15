@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Контакты и бронирование — Свирские крыши</title>
+
+    <!-- Иконка сайта (favicon) -->
+  <link rel="icon" type="image/png" href="ic1.png" />
+  <link rel="apple-touch-icon" href="ic1.png" />
+
+<style>
+  :root{
+    --green:#3a5a40;
+    --green-dark:#283e2e;
+    --sand:#dad7cd;
+    --cream:#f7f5f0;
+    --accent:#a3b18a;
+    --text:#2b2b2b;
+    --gold:#e0a800;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);background:var(--cream);line-height:1.6;}
+  a{text-decoration:none;color:inherit;}
+  .container{max-width:1180px;margin:0 auto;padding:0 20px;}
+
+  /* HEADER */
+  header{position:sticky;top:0;z-index:100;background:rgba(40,62,46,.95);backdrop-filter:blur(6px);}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;max-width:1180px;margin:0 auto;}
+  .logo{color:#fff;font-size:1.4rem;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+  .logo span{font-size:1.6rem;}
+  .nav-links{display:flex;gap:28px;list-style:none;}
+  .nav-links a{color:#e9e9e2;font-size:.98rem;transition:.2s;}
+  .nav-links a:hover,.nav-links a.active{color:#fff;border-bottom:2px solid var(--accent);padding-bottom:2px;}
+  .burger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
+  .burger span{width:26px;height:3px;background:#fff;border-radius:2px;}
+
+  /* PAGE HERO */
+  .page-hero{height:38vh;min-height:280px;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;
+    background:linear-gradient(rgba(20,30,22,.5),rgba(20,30,22,.6)),url('05nbp-ph960q11.jpg') center/cover;}
+  .page-hero h1{font-size:2.8rem;text-shadow:0 2px 16px rgba(0,0,0,.4);}
+  .page-hero p{font-size:1.1rem;opacity:.95;margin-top:10px;}
+
+  .breadcrumb{background:#fff;padding:14px 0;font-size:.9rem;color:#888;}
+  .breadcrumb a{color:var(--green);}
+
+  section{padding:55px 0;}
+  .section-title{text-align:center;font-size:2rem;color:var(--green-dark);margin-bottom:8px;}
+  .section-sub{text-align:center;color:#777;margin-bottom:34px;}
+
+  /* CONTACT CARDS */
+  .contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px;margin-bottom:50px;}
+  .contact-card{background:#fff;border-radius:16px;padding:28px;text-align:center;box-shadow:0 8px 22px rgba(0,0,0,.06);transition:.25s;}
+  .contact-card:hover{transform:translateY(-5px);}
+  .contact-card .ico{font-size:2.2rem;margin-bottom:12px;}
+  .contact-card h3{color:var(--green);margin-bottom:6px;font-size:1.1rem;}
+  .contact-card p{color:#666;font-size:.95rem;}
+  .contact-card a{color:var(--green-dark);font-weight:600;}
+
+  /* MAP */
+  .map-wrap{border-radius:18px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.1);height:420px;}
+  .map-wrap iframe{width:100%;height:100%;border:0;}
+
+  /* BOOKING */
+  .booking{background:var(--sand);}
+  .booking-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start;}
+  .panel{background:#fff;border-radius:18px;padding:32px;box-shadow:0 12px 30px rgba(0,0,0,.08);}
+  .panel h3{color:var(--green-dark);margin-bottom:18px;font-size:1.3rem;}
+
+  /* CALENDAR */
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .cal-head button{background:var(--green);color:#fff;border:none;width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:1.1rem;transition:.2s;}
+  .cal-head button:hover{background:var(--green-dark);}
+  .cal-head .month-lbl{font-weight:700;color:var(--green-dark);}
+  .weekdays,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .weekdays span{text-align:center;font-size:.78rem;color:#999;padding:6px 0;font-weight:600;}
+  .days button{aspect-ratio:1;border:none;background:var(--cream);border-radius:8px;cursor:pointer;font-size:.9rem;color:var(--text);transition:.15s;}
+  .days button:hover:not(:disabled){background:var(--accent);color:#fff;}
+  .days button:disabled{opacity:.3;cursor:not-allowed;text-decoration:line-through;}
+  .days button.empty{background:transparent;cursor:default;}
+  .days button.selected{background:var(--green);color:#fff;}
+  .days button.in-range{background:var(--accent);color:#fff;}
+  .days button.busy{background:#f3d6d6;color:#c0392b;cursor:not-allowed;}
+  .cal-legend{display:flex;gap:18px;margin-top:14px;font-size:.8rem;color:#777;flex-wrap:wrap;}
+  .cal-legend i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:5px;vertical-align:middle;}
+  .lg-free{background:var(--cream);border:1px solid #ccc;}
+  .lg-sel{background:var(--green);}
+  .lg-busy{background:#f3d6d6;}
+
+  .selected-dates{margin-top:18px;padding:14px;background:var(--cream);border-radius:10px;font-size:.92rem;}
+  .selected-dates b{color:var(--green-dark);}
+  .price-calc{margin-top:14px;border-top:2px dashed #e2e0d7;padding-top:14px;}
+  .price-row{display:flex;justify-content:space-between;padding:5px 0;color:#555;font-size:.95rem;}
+  .price-row.total{font-size:1.2rem;font-weight:800;color:var(--green-dark);border-top:1px solid #e2e0d7;margin-top:6px;padding-top:10px;}
+  .price-row.prepay{color:var(--green-dark);font-weight:700;}
+
+  /* FORM */
+  .form-group{margin-bottom:16px;}
+  .form-group label{display:block;margin-bottom:6px;color:var(--green-dark);font-weight:600;font-size:.9rem;}
+  .form-group input,.form-group textarea{width:100%;padding:12px 14px;border:2px solid var(--sand);border-radius:10px;font-size:.95rem;font-family:inherit;background:var(--cream);transition:.2s;}
+  .form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--accent);}
+  .form-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .form-row .form-group{flex:1;min-width:140px;}
+  .btn{display:block;width:100%;text-align:center;background:var(--green-dark);color:#fff;padding:15px;border-radius:40px;font-weight:600;cursor:pointer;border:2px solid var(--green-dark);transition:.25s;font-size:1rem;}
+  .btn:hover{background:transparent;color:var(--green-dark);}
+  .btn:disabled{opacity:.6;cursor:wait;}
+  .btn-outline{background:transparent;color:var(--green-dark);}
+  .btn-outline:hover{background:var(--green-dark);color:#fff;}
+  .form-success{display:none;background:#e6f0e3;border:1px solid var(--accent);color:var(--green-dark);padding:14px;border-radius:10px;margin-bottom:16px;text-align:center;}
+
+  /* PAYMENT STEP */
+  .pay-step{display:none;}
+  .pay-amount{text-align:center;background:var(--cream);border-radius:14px;padding:18px;margin-bottom:18px;}
+  .pay-amount .sum{font-size:2.2rem;font-weight:800;color:var(--green-dark);}
+  .pay-amount p{color:#777;font-size:.88rem;}
+  .pay-details{border:2px solid var(--sand);border-radius:14px;overflow:hidden;margin-bottom:18px;}
+  .pay-detail-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--sand);font-size:.95rem;}
+  .pay-detail-row:last-child{border-bottom:none;}
+  .pay-detail-row .lbl{color:#888;font-size:.84rem;}
+  .pay-detail-row .val{font-weight:700;color:var(--green-dark);}
+  .copy-btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:.8rem;cursor:pointer;transition:.2s;flex-shrink:0;}
+  .copy-btn:hover{background:var(--green-dark);}
+  .pay-steps-list{margin:0 0 18px 0;padding-left:20px;color:#555;font-size:.92rem;}
+  .pay-steps-list li{margin-bottom:6px;}
+  .pay-warning{background:#fdf6e3;border:1px solid #f0d98c;border-radius:10px;padding:12px 14px;font-size:.86rem;color:#8a6d1a;margin-bottom:18px;}
+  .pay-final{display:none;background:#e6f0e3;border:1px solid var(--accent);color:var(--green-dark);padding:18px;border-radius:12px;text-align:center;font-size:1rem;}
+
+  /* PAYMENT NOTE */
+  .pay-note{background:#fff;border-radius:16px;padding:26px;margin-top:30px;display:flex;gap:18px;align-items:flex-start;box-shadow:0 8px 22px rgba(0,0,0,.05);}
+  .pay-note .ico{font-size:2rem;flex-shrink:0;}
+  .pay-note h4{color:var(--green-dark);margin-bottom:6px;}
+  .pay-note p{color:#666;font-size:.92rem;}
+  .pay-icons{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  .pay-icons span{background:var(--sand);padding:5px 12px;border-radius:8px;font-size:.82rem;color:var(--green-dark);font-weight:600;}
+
+  footer{background:#1d2a1f;color:#cfd3ca;padding:50px 0 24px;}
+  .foot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:34px;margin-bottom:30px;}
+  footer h4{color:#fff;margin-bottom:14px;}
+  footer a{display:block;color:#aeb3a6;margin-bottom:8px;transition:.2s;}
+  footer a:hover{color:#fff;}
+
+  .copy{text-align:center;border-top:1px solid #33442f;padding-top:20px;font-size:.85rem;color:#8a9384;}
+  .copy-line{
+    display:inline;             /* по умолчанию — в одну строку */
+    white-space:nowrap;         /* каждая часть не рвётся внутри себя */
+  }
+  .copy a{display:inline;}      /* ссылка mps1 — в строку */
+
+  /* на узких экранах вторая часть уходит на новую строку */
+  @media(max-width:600px){
+    .copy-line{display:block;}
+  }
+
+  @media(max-width:880px){
+    .booking-grid{grid-template-columns:1fr;}
+    .nav-links{display:none;position:absolute;top:62px;left:0;right:0;flex-direction:column;background:var(--green-dark);padding:20px;gap:18px;}
+    .nav-links.open{display:flex;}
+    .burger{display:flex;}
+    .page-hero h1{font-size:2rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <nav>
+    <a href="index.html" class="logo"><span>🌲</span> Свирские крыши</a>
+    <ul class="nav-links" id="menu">
+      <li><a href="index.html">Главная</a></li>
+      <li><a href="house.html">О доме</a></li>
+      <li><a href="gallery.html">Галерея</a></li>
+      <li><a href="reviews.html">Отзывы</a></li>
+      <li><a href="contacts.html" class="active">Контакты</a></li>
+    </ul>
+    <div class="burger" onclick="document.getElementById('menu').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+</header>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div>
+    <h1>Контакты и бронирование</h1>
+    <p>Выберите даты, оставьте заявку и внесите предоплату онлайн</p>
+  </div>
+</section>
+
+<div class="breadcrumb">
+  <div class="container"><a href="index.html">Главная</a> / Контакты</div>
+</div>
+
+<!-- CONTACT CARDS + MAP -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Как с нами связаться</h2>
+    <p class="section-sub">Мы всегда на связи и быстро отвечаем</p>
+
+    <div class="contact-grid">
+      <div class="contact-card">
+        <div class="ico">📞</div>
+        <h3>Телефон</h3>
+        <p><a href="tel:+79110965722">+7 (911) 096-57-22</a></p>
+        <p style="font-size:.82rem;">Звонки и Мессенджеры</p>
+      </div>
+      <div class="contact-card">
+        <div class="ico">💬</div>
+        <h3>Мессенджеры</h3>
+        <p><a href="#">Telegram · WhatsApp · Max</a></p>
+        <p style="font-size:.82rem;">Ответим быстро</p>
+      </div>
+      <div class="contact-card">
+        <div class="ico">📍</div>
+        <h3>Адрес</h3>
+        <p>Старая Слобода,<br>Новая Слобода,<br>Сосновая улица, 100</p>
+      </div>
+      <div class="contact-card">
+        <div class="ico">👤</div>
+        <h3>Хозяйка</h3>
+        <p>Дарина Игоревна<br>Заремба</p>
+      </div>
+    </div>
+
+    <!-- ЯНДЕКС КАРТА -->
+    <div class="map-wrap">
+      <iframe src="https://yandex.ru/map-widget/v1/?ll=33.339759%2C60.784001&z=13&pt=33.339759,60.784001,pm2grm"
+              allowfullscreen="true" loading="lazy"></iframe>
+    </div>
+    <p style="text-align:center;color:#999;font-size:.85rem;margin-top:12px;">
+      🗺️ Рядом — Свято-Троицкий Александро-Свирский монастырь
+    </p>
+  </div>
+</section>
+
+<!-- BOOKING -->
+<section class="booking">
+  <div class="container">
+    <h2 class="section-title">Забронировать домик</h2>
+    <p class="section-sub">Выберите даты заезда и выезда в календаре</p>
+
+    <div class="booking-grid">
+
+      <!-- КАЛЕНДАРЬ -->
+      <div class="panel">
+        <h3>📅 Календарь свободных дат</h3>
+        <div class="cal-head">
+          <button onclick="changeMonth(-1)">&#10094;</button>
+          <span class="month-lbl" id="monthLbl"></span>
+          <button onclick="changeMonth(1)">&#10095;</button>
+        </div>
+        <div class="weekdays">
+          <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+        </div>
+        <div class="days" id="days"></div>
+
+        <div class="cal-legend">
+          <span><i class="lg-free"></i>Свободно</span>
+          <span><i class="lg-sel"></i>Ваш выбор</span>
+          <span><i class="lg-busy"></i>Занято</span>
+        </div>
+
+        <div class="selected-dates" id="selectedDates">
+          Даты не выбраны. Нажмите на дату заезда, затем на дату выезда.
+        </div>
+
+        <div class="price-calc" id="priceCalc" style="display:none;">
+          <div class="price-row"><span id="nightsLine">Ночей</span><span id="nightsSum"></span></div>
+          <div class="price-row total"><span>Стоимость проживания</span><span id="totalSum"></span></div>
+          <div class="price-row prepay"><span>Предоплата для брони (онлайн)</span><span id="prepaySum"></span></div>
+          <p style="font-size:.8rem;color:#999;margin-top:8px;">
+            Остаток оплачивается при заселении.<br>
+            Страховой депозит 7 000 ₽ — только при заселении, возвращается при выезде.
+          </p>
+        </div>
+      </div>
+
+      <!-- ФОРМА ЗАЯВКИ + ОПЛАТА -->
+      <div class="panel">
+
+        <!-- ШАГ 1: ФОРМА -->
+        <div id="formStep">
+          <h3>📝 Шаг 1. Заявка на бронирование</h3>
+          <form id="bookForm" action="https://formspree.io/f/xwvjqzjk" method="POST" onsubmit="return submitBooking(event)">
+            <div class="form-group">
+              <label for="bname">Ваше имя</label>
+              <input type="text" id="bname" name="Имя" required placeholder="Имя">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bphone">Телефон</label>
+                <input type="tel" id="bphone" name="Телефон" required placeholder="+7 (___) ___-__-__">
+              </div>
+              <div class="form-group">
+                <label for="bguests">Гостей</label>
+                <input type="number" id="bguests" name="Гостей" min="1" max="4" value="2" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bin">Заезд</label>
+                <input type="text" id="bin" name="Дата заезда" readonly placeholder="выберите в календаре">
+              </div>
+              <div class="form-group">
+                <label for="bout">Выезд</label>
+                <input type="text" id="bout" name="Дата выезда" readonly placeholder="выберите в календаре">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bemail">Электронная почта</label>
+              <input type="email" id="bemail" name="Email" required placeholder="name@mail.ru">
+            </div>
+            <div class="form-group">
+              <label for="bcomment">Комментарий</label>
+              <textarea id="bcomment" name="Комментарий" rows="3" placeholder="Пожелания, вопросы, питомцы..."></textarea>
+            </div>
+            <input type="hidden" name="Статус" value="Новая заявка — ожидает предоплату по СБП">
+            <input type="hidden" name="Сумма проживания" id="hSum" value="">
+            <input type="hidden" name="Предоплата" id="hPrepay" value="">
+            <button type="submit" class="btn" id="submitBtn">Отправить заявку и перейти к оплате</button>
+          </form>
+        </div>
+
+        <!-- ШАГ 2: ОПЛАТА ПО СБП -->
+        <div class="pay-step" id="payStep">
+          <h3>💸 Шаг 2. Предоплата по СБП</h3>
+
+          <div class="pay-amount">
+            <div class="sum" id="payAmount">15 ₽</div>
+            <p>Предоплата для закрепления брони</p>
+          </div>
+
+          <div class="pay-details">
+            <div class="pay-detail-row">
+              <div>
+                <div class="lbl">Номер телефона (СБП)</div>
+                <div class="val" id="sbpPhone">+7 (985) 287-92-49</div>
+              </div>
+              <button class="copy-btn" onclick="copyText('+79852879249', this)">Копировать</button>
+            </div>
+            <div class="pay-detail-row">
+              <div>
+                <div class="lbl">Банк получателя</div>
+               <div class="val" id="sbpBank">Т-Банк (Тинькофф)</div>
+              </div>
+            </div>
+            <div class="pay-detail-row">
+              <div>
+                <div class="lbl">Получатель</div>
+                <div class="val" id="sbpName">Сергей Сергеевич К.</div>
+              </div>
+            </div>
+            <div class="pay-detail-row">
+              <div>
+                                <div class="lbl">Сумма перевода</div>
+                <div class="val" id="payAmountRow">15 ₽</div>
+              </div>
+              <button class="copy-btn" onclick="copyText(String(PREPAY), this)">Копировать</button>
+            </div>
+          </div>
+
+          <ol class="pay-steps-list">
+            <li>Откройте приложение своего банка</li>
+            <li>Выберите «Перевод по СБП» по номеру телефона</li>
+            <li>Укажите номер <b>+7 (985) 287-92-49</b>, банк — <b>Т-Банк (Тинькофф)</b></li>
+            <li>Проверьте получателя: <b>Сергей Сергеевич К.</b></li>
+            <li>Переведите сумму предоплаты и нажмите кнопку ниже</li>
+          </ol>
+
+          <div class="pay-warning">
+  ⏱️ Даты забронированы за вами. Осталось времени: <b id="holdTimer">20:00</b>.<br>
+  Просим внести предоплату — после подтверждения даты закрепляются за вами.
+          </div>
+
+          <button class="btn" id="paidBtn" onclick="confirmPaid()">✅ Я оплатил(а)</button>
+          <button class="btn btn-outline" style="margin-top:10px;" onclick="backToForm()">← Вернуться к заявке</button>
+
+          <div class="pay-final" id="payFinal" style="margin-top:18px;">
+            💚 Спасибо! Мы получили ваше подтверждение оплаты.<br>
+            Проверим поступление и сообщим вам о подтверждение брони. Ожидайте!
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ПОЯСНЕНИЕ ПРО ОПЛАТУ -->
+    <div class="pay-note">
+      <div class="ico">💳</div>
+      <div>
+        <h4>Как происходит оплата</h4>
+        <p>Сразу после отправки заявки вы увидите реквизиты для предоплаты переводом по СБП (по номеру телефона).
+        Как только предоплата поступит — даты закрепляются за вами, мы пришлём подтверждение.
+        Остаток за проживание оплачивается при заселении. Страховой депозит 7 000 ₽ вносится только при заселении и возвращается при выезде.</p>
+        <div class="pay-icons">
+          <span>🟡 СБП — перевод по номеру телефона</span>
+          <span>🏦 Т-Банк</span>
+          <span>💵 Остаток — при заселении</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <h4>🌲 Свирские крыши</h4>
+        <p style="color:#aeb3a6;">Уютные гостевые дома в окружении хвойного леса свирского заповедника.</p>
+      </div>
+      <div>
+        <h4>Навигация</h4>
+        <a href="index.html">Главная</a>
+        <a href="house.html">О доме</a>
+        <a href="gallery.html">Галерея</a>
+        <a href="reviews.html">Отзывы</a>
+        <a href="contacts.html">Контакты</a>
+      </div>
+      <div>
+        <h4>Контакты</h4>
+        <a href="#">📍 Старая Слобода,<br>Новая Слобода,<br>Сосновая улица, 100</a>
+        <a href="#">👤 Хозяйка: Дарина Игоревна</a>
+        <a href="tel:+79110965722">📞 +7 (911) 096-57-22</a>
+      </div>
+      <div>
+        <h4>Время</h4>
+        <a href="#">Заезд — после 15:00</a>
+        <a href="#">Выезд — до 12:00</a>
+      </div>
+    </div>
+    
+	    <div class="copy">
+      <span class="copy-line">© 2026 Свирские крыши. Все права защищены.</span>
+      <span class="copy-line">Сайт сделан <a href="https://sergei3d64.github.io/mps1/">mps1</a> 🍃</span>
+    </div>
+	
+  </div>
+</footer>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  /* ╔════════════ НАСТРОЙКИ — менять только здесь ════════════╗ */
+  const SUPABASE_URL = 'https://nhkufkkeqywmycptbixa.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oa3Vma2tlcXl3bXljcHRiaXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExODQ0NTAsImV4cCI6MjA5Njc2MDQ1MH0.SS7HRL8zxQzm3lWJWoy8zYPkjWNNwobrMTP1TAyCOu4';
+  const FORMSPREE_URL   = 'https://formspree.io/f/xwvjqzjk'; // ваш Formspree (письма на почту)
+
+  const PRICE_PER_NIGHT = 6000;  // цена за ночь, ₽
+  const DEPOSIT         = 7000;  // депозит — только при заселении
+  const PREPAY          = 15;    // предоплата, ₽ (тест — потом изменить)
+  const HOLD_MINUTES    = 20;    // удержание дат, минут
+
+  const SBP_PHONE_RAW = '+79852879249';        // для копирования
+  const SBP_PHONE     = '+7 (985) 287-92-49';  // для показа
+  const SBP_BANK      = 'Т-Банк (Тинькофф)';
+  const SBP_NAME      = 'Сергей Сергеевич К.';
+  /* ╚═════════════════════════════════════════════════════════╝ */
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const months = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  let viewDate = new Date(); viewDate.setDate(1);
+  let checkIn = null, checkOut = null;
+  let busy = new Set();
+  let bookingId = null, timerInt = null;
+
+  const daysEl = document.getElementById('days');
+  const monthLbl = document.getElementById('monthLbl');
+  const $ = id => document.getElementById(id);
+
+  function fmt(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function fmtRu(d){ return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear(); }
+
+  /* ===== загрузка занятых дат из Supabase ===== */
+  async function loadBusy(){
+    try{
+      await sb.rpc('cleanup_expired');
+      const {data,error} = await sb.rpc('get_busy_dates');
+      if(error) throw error;
+      busy = new Set();
+      (data||[]).forEach(b=>{
+        let d = new Date(b.date_in+'T00:00:00');
+        const end = new Date(b.date_out+'T00:00:00');
+        while(d < end){ busy.add(fmt(d)); d.setDate(d.getDate()+1); }
+      });
+    }catch(e){ console.warn('Supabase:', e.message); }
+    renderCalendar();
+  }
+
+  /* ===== КАЛЕНДАРЬ (ваш дизайн классов) ===== */
+  function renderCalendar(){
+    daysEl.innerHTML='';
+    monthLbl.textContent = months[viewDate.getMonth()]+' '+viewDate.getFullYear();
+    const year=viewDate.getFullYear(), month=viewDate.getMonth();
+    let firstDay=new Date(year,month,1).getDay();
+    firstDay = firstDay===0?6:firstDay-1;
+    const daysInMonth=new Date(year,month+1,0).getDate();
+    const today=new Date(); today.setHours(0,0,0,0);
+
+    for(let i=0;i<firstDay;i++){
+      const e=document.createElement('button'); e.className='empty'; e.disabled=true; daysEl.appendChild(e);
+    }
+    for(let d=1;d<=daysInMonth;d++){
+      const date=new Date(year,month,d);
+      const ds=fmt(date);
+      const btn=document.createElement('button');
+      btn.textContent=d;
+      if(date<today){
+        btn.disabled=true;
+      } else if(busy.has(ds)){
+        btn.classList.add('busy'); btn.disabled=true;
+      } else {
+        btn.onclick=()=>pickDate(date);
+        if(checkIn && fmt(checkIn)===ds) btn.classList.add('selected');
+        if(checkOut && fmt(checkOut)===ds) btn.classList.add('selected');
+        if(checkIn && checkOut && date>checkIn && date<checkOut) btn.classList.add('in-range');
+      }
+      daysEl.appendChild(btn);
+    }
+  }
+
+  function changeMonth(dir){ viewDate.setMonth(viewDate.getMonth()+dir); renderCalendar(); }
+
+  function rangeHasBusy(start,end){
+    let cur=new Date(start); cur.setDate(cur.getDate()+1);
+    while(cur<end){ if(busy.has(fmt(cur))) return true; cur.setDate(cur.getDate()+1); }
+    return false;
+  }
+
+  function pickDate(date){
+    if(!checkIn || (checkIn && checkOut)){ checkIn=date; checkOut=null; }
+    else if(date>checkIn){
+      if(rangeHasBusy(checkIn,date)){ alert('В выбранном диапазоне есть занятые даты. Выберите другой период.'); checkIn=date; checkOut=null; }
+      else { checkOut=date; }
+    } else { checkIn=date; checkOut=null; }
+    renderCalendar(); updateInfo();
+  }
+
+  function updateInfo(){
+    const sel=$('selectedDates'), calc=$('priceCalc'), binEl=$('bin'), boutEl=$('bout');
+    if(checkIn && checkOut){
+      const nights=Math.round((checkOut-checkIn)/(1000*60*60*24));
+      const accomSum=nights*PRICE_PER_NIGHT;
+      sel.innerHTML='Заезд: <b>'+fmtRu(checkIn)+'</b> &nbsp;→&nbsp; Выезд: <b>'+fmtRu(checkOut)+'</b><br>Ночей: <b>'+nights+'</b>';
+      binEl.value=fmtRu(checkIn); boutEl.value=fmtRu(checkOut);
+      $('nightsLine').textContent=nights+' ноч. × '+PRICE_PER_NIGHT.toLocaleString('ru')+' ₽';
+      $('nightsSum').textContent=accomSum.toLocaleString('ru')+' ₽';
+      $('totalSum').textContent=accomSum.toLocaleString('ru')+' ₽';
+      $('prepaySum').textContent=PREPAY.toLocaleString('ru')+' ₽';
+      $('hSum').value=accomSum+' ₽'; $('hPrepay').value=PREPAY+' ₽ (СБП)';
+      calc.style.display='block';
+    } else if(checkIn){
+      sel.innerHTML='Заезд: <b>'+fmtRu(checkIn)+'</b><br>Теперь выберите дату выезда.';
+      binEl.value=fmtRu(checkIn); boutEl.value=''; calc.style.display='none';
+    } else {
+      sel.innerHTML='Даты не выбраны. Нажмите на дату заезда, затем на дату выезда.';
+      binEl.value=''; boutEl.value=''; calc.style.display='none';
+    }
+  }
+
+  /* ===== ШАГ 1: заявка → создаём бронь в Supabase ===== */
+  async function submitBooking(e){
+    e.preventDefault();
+    if(!checkIn || !checkOut){ alert('Пожалуйста, выберите даты заезда и выезда в календаре.'); return false; }
+    const form=e.target, btn=$('submitBtn');
+    btn.disabled=true; btn.textContent='Бронируем даты...';
+    try{
+      await loadBusy();
+      if(rangeHasBusy(checkIn,checkOut)) throw new Error('Увы, эти даты только что заняли. Выберите другой период.');
+
+      const {data,error} = await sb.from('bookings').insert({
+        date_in: fmt(checkIn), date_out: fmt(checkOut),
+        guest_name: $('bname').value, guest_phone: $('bphone').value
+      }).select('id').single();
+      if(error) throw error;
+      bookingId = data.id;
+
+      // письмо на почту со ВСЕМИ данными заявки (приходит ДО оплаты)
+      const mail = new FormData(form);
+      mail.set('Email', $('bemail').value);
+      mail.set('Комментарий', $('bcomment').value || '—');
+      mail.set('Дата заезда', $('bin').value);
+      mail.set('Дата выезда', $('bout').value);
+      mail.set('Гостей', $('bguests').value);
+      sendMail(mail, 'Новая заявка — ожидает предоплату по СБП');
+
+      showPayStep();
+      loadBusy();
+    }catch(err){
+      alert(err.message || 'Ошибка. Попробуйте ещё раз.');
+    }
+    btn.disabled=false; btn.textContent='Отправить заявку и перейти к оплате';
+    return false;
+  }
+
+  function sendMail(data, status){
+    if(!FORMSPREE_URL) return;
+    data.set('Статус', status);
+    // тема письма — чтобы сразу видеть в почте, что за заявка
+    data.set('_subject', status + ' — Свирские крыши');
+    // отвечать гостю прямо из почты (если он указал email)
+    const email = $('bemail') ? $('bemail').value : '';
+    if(email) data.set('_replyto', email);
+    fetch(FORMSPREE_URL,{method:'POST',body:data,headers:{'Accept':'application/json'}}).catch(()=>{});
+  }
+
+  /* ===== ШАГ 2: экран оплаты ===== */
+  function showPayStep(){
+    $('payAmount').textContent = PREPAY.toLocaleString('ru')+' ₽';
+    $('payAmountRow').textContent = PREPAY.toLocaleString('ru')+' ₽';
+    $('sbpPhone').textContent = SBP_PHONE;
+	 $('sbpBank').textContent = SBP_BANK;   // ← добавить
+     $('sbpName').textContent = SBP_NAME;   // ← добавить
+    $('formStep').style.display='none';
+    $('payStep').style.display='block';
+    $('payFinal').style.display='none';
+    $('paidBtn').style.display='block';
+    startTimer();
+    $('payStep').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function startTimer(){
+    let sec = HOLD_MINUTES*60;
+    clearInterval(timerInt);
+    const t = $('holdTimer');
+    timerInt = setInterval(()=>{
+      sec--;
+      if(t) t.textContent = String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
+      if(sec<=0){ clearInterval(timerInt); alert('Время брони истекло, даты освобождены.'); backToForm(); }
+    },1000);
+  }
+
+  async function backToForm(){
+    clearInterval(timerInt);
+    if(bookingId){ await sb.from('bookings').delete().eq('id', bookingId); bookingId=null; }
+    $('payStep').style.display='none';
+    $('formStep').style.display='block';
+    loadBusy();
+  }
+
+  function copyText(text, btn){
+    navigator.clipboard.writeText(text).then(()=>{
+      const old=btn.textContent; btn.textContent='✓ Скопировано';
+      setTimeout(()=>{btn.textContent=old;},1600);
+    }).catch(()=>{
+      const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      btn.textContent='✓ Скопировано'; setTimeout(()=>{btn.textContent='Копировать';},1600);
+    });
+  }
+
+/* ===== Автосохранение данных формы в браузере ===== */
+const FORM_FIELDS = ['bname','bphone','bguests','bemail','bcomment'];
+
+function saveFormData(){
+  const data = {};
+  FORM_FIELDS.forEach(id=>{ const el=$(id); if(el) data[id]=el.value; });
+  localStorage.setItem('svirskie_form', JSON.stringify(data));
+}
+
+function restoreFormData(){
+  try{
+    const data = JSON.parse(localStorage.getItem('svirskie_form')||'{}');
+    FORM_FIELDS.forEach(id=>{ const el=$(id); if(el && data[id]!=null) el.value=data[id]; });
+  }catch(e){}
+}
+
+function clearFormData(){
+  localStorage.removeItem('svirskie_form');
+}
+
+// Сохраняем при каждом изменении полей
+FORM_FIELDS.forEach(id=>{
+  const el=$(id);
+  if(el) el.addEventListener('input', saveFormData);
+});
+
+  /* ===== подтверждение оплаты ===== */
+  async function confirmPaid(){
+    const btn=$('paidBtn');
+    btn.disabled=true; btn.textContent='Подтверждаем...';
+    try{
+      if(bookingId){
+        const {error} = await sb.from('bookings').update({status:'paid'}).eq('id', bookingId);
+        if(error) throw error;
+      }
+      clearInterval(timerInt);
+      const d=new FormData();
+      d.append('Статус','✅ ГОСТЬ ПОДТВЕРДИЛ ОПЛАТУ предоплаты '+PREPAY+' ₽ по СБП');
+      d.append('Имя', $('bname').value); d.append('Телефон', $('bphone').value);
+      d.append('Заезд', $('bin').value); d.append('Выезд', $('bout').value);
+      sendMail(d, '✅ ОПЛАЧЕНО');
+
+      btn.style.display='none';
+      $('payFinal').style.display='block';
+      bookingId=null; checkIn=null; checkOut=null;
+      $('bookForm').reset();
+	        clearFormData();
+      loadBusy(); updateInfo();
+    }catch(err){
+      alert('Ошибка подтверждения. Попробуйте ещё раз или напишите нам в мессенджер.');
+      btn.disabled=false; btn.textContent='✅ Я оплатил(а)';
+    }
+  }
+
+/* ===== Освобождение дат при закрытии/обновлении страницы ===== */
+window.addEventListener('beforeunload', ()=>{
+  if(bookingId){
+    // sendBeacon работает даже при закрытии вкладки
+    const url = SUPABASE_URL + '/rest/v1/bookings?id=eq.' + bookingId;
+    const blob = new Blob([JSON.stringify({})], {type:'application/json'});
+    // удаляем бронь
+    navigator.sendBeacon(
+      url + '&apikey=' + SUPABASE_KEY,
+      blob
+    );
+    // запасной синхронный вариант
+    try{
+      fetch(url, {
+        method:'DELETE',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY},
+        keepalive:true
+      });
+    }catch(e){}
+  }
+});
+
+  // запуск
+restoreFormData();   // восстанавливаем данные формы
+loadBusy();
+updateInfo();
+</script>
+</body>
+</html>
